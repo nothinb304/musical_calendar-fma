@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2027 Musical Calendar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Poppins:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #38bdf8;
+            --text-main: #f8fafc;
+            --text-muted: #cbd5e1;
+            --border-color: #334155;
+            --font-main: 'Montserrat', sans-serif;
+            --font-heading: 'Poppins', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            transition: background-color 0.5s ease;
+            touch-action: manipulation;
+        }
+
+        /* Navigation Controls */
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 950px;
+            margin-bottom: 16px;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .month-selector {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            max-width: 700px;
+            padding: 4px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .month-pill {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .month-pill.active, .month-pill:hover {
+            background: var(--accent);
+            color: #000;
+            font-weight: 600;
+        }
+
+        /* Main Calendar Container */
+        .calendar-container {
+            display: flex;
+            gap: 24px;
+            width: 100%;
+            max-width: 950px;
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            transition: all 0.5s ease;
+        }
+
+        /* Left Column (Square Photo, Song Info, Spotify Button) */
+        .left-panel {
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex-shrink: 0;
+            justify-content: space-between;
+        }
+
+        /* Perfectly Square Container */
+        .photo-frame {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .photo-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .song-info {
+            text-align: left;
+            padding: 4px 0;
+        }
+
+        .song-title {
+            font-family: var(--font-heading);
+            font-size: 1.35rem;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--text-main);
+        }
+
+        .song-artist {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-top: 6px;
+            letter-spacing: 0.3px;
+        }
+
+        .spotify-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px;
+            background-color: #1DB954;
+            color: #000000;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 30px;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
+        }
+
+        .spotify-btn:hover {
+            transform: scale(1.03);
+            background-color: #1ed760;
+        }
+
+        .spotify-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* Right Column (Month Header & Calendar Grid) */
+        .right-panel {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .month-header {
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 16px;
+            letter-spacing: -1px;
+        }
+
+        .year-tag {
+            font-size: 1.2rem;
+            opacity: 0.6;
+            margin-left: 8px;
+            font-weight: 400;
+        }
+
+        .calendar-box {
+            flex-grow: 1;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            background: rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .day-label {
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            padding-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .date-cell {
+            aspect-ratio: 1 / 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .date-cell:not(.empty):hover {
+            background: var(--accent);
+            color: #000;
+            transform: scale(1.08);
+            font-weight: 700;
+            z-index: 2;
+        }
+
+        .date-cell.empty {
+            background: transparent;
+            border: none;
+            cursor: default;
+        }
+
+        .note-dot {
+            width: 4px;
+            height: 4px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            position: absolute;
+            bottom: 4px;
+        }
+
+        /* Mobile & Responsive Layout Styles */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .controls {
+                margin-bottom: 12px;
+            }
+            .calendar-container {
+                flex-direction: column;
+                padding: 16px;
+                gap: 16px;
+            }
+            .left-panel {
+                width: 100%;
+                gap: 12px;
+            }
+            .photo-frame {
+                max-width: 280px;
+                margin: 0 auto;
+            }
+            .song-info {
+                text-align: center;
+            }
+            .month-header {
+                font-size: 2.2rem;
+                text-align: center;
+                margin-bottom: 12px;
+            }
+            .calendar-box {
+                padding: 10px;
+            }
+            .calendar-grid {
+                gap: 4px;
+            }
+            .day-label {
+                font-size: 0.7rem;
+            }
+            .date-cell {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <button class="nav-btn" onclick="prevMonth()">← Prev</button>
+        <div class="month-selector" id="monthPills"></div>
+        <button class="nav-btn" onclick="nextMonth()">Next →</button>
+    </div>
+
+    <div class="calendar-container" id="calendarApp">
+        <!-- Left Panel: Square Photo, Info, Spotify Link -->
+        <div class="left-panel">
+            <div class="photo-frame">
+                <img id="mainImage" src="" alt="Month Main Photo">
+            </div>
+
+            <div class="song-info">
+                <div class="song-title" id="songTitle">Treat You Better</div>
+                <div class="song-artist" id="songArtist">Shawn Mendes</div>
+            </div>
+
+            <a id="spotifyLink" href="#" target="_blank" class="spotify-btn">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.02 8.52-.6 11.64 1.32.42.18.48.66.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141 C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.18-1.2-.18-1.38-.72-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.72 1.62.54.3.72 1.02.42 1.56-.3.42-1.02.6-1.56.3z"/>
+                </svg>
+                Listen on Spotify
+            </a>
+        </div>
+
+        <!-- Right Panel: Month Title & 2027 Calendar Grid -->
+        <div class="right-panel">
+            <h1 class="month-header" id="monthHeader">January <span class="year-tag">2027</span></h1>
+            <div class="calendar-box">
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        
+        const MONTH_PHOTOS = {
+            january: {
+                main: "Januarymain.png"
+            },
+            february: {
+                main: "February.jpg"
+            },
+            march: {
+                main: "march.jpg"
+            },
+            april: {
+                main: "april.jpg"
+            },
+            may: {
+                main: "may.jpg"
+            },
+            june: {
+                main: "june.jpg"
+            },
+            july: {
+                main: "july.png"
+            },
+            august: {
+                main: "august.jpg"
+            },
+            september: {
+                main: "september.jpg"
+            },
+            october: {
+                main: "october.jpg"
+            },
+            november: {
+                main: "november.jpg"
+            },
+            december: {
+                main: "december.png"
+            }
+        };
+
+        const MONTHS_DATA = [
+            {
+                name: "January",
+                key: "january",
+                song: "Treat You Better",
+                artist: "Shawn Mendes",
+                spotify: "https://open.spotify.com/search/Treat%20You%20Better%20Shawn%20Mendes",
+                days: 31,
+                startDay: 5, // 2027: Friday
+                theme: { bg: "#0f172a", card: "#1e293b", accent: "#38bdf8", border: "#334155", fontHead: "'Poppins', sans-serif" }
+            },
+            {
+                name: "February",
+                key: "february",
+                song: "Learning to Love",
+                artist: "Mico",
+                spotify: "https://open.spotify.com/search/Learning%20to%20Love%20Mico",
+                days: 28,
+                startDay: 1, // 2027: Monday
+                theme: { bg: "#2a1b24", card: "#3b2633", accent: "#f472b6", border: "#4a3242", fontHead: "'Playfair Display', serif" }
+            },
+            {
+                name: "March",
+                key: "march",
+                song: "Lovers Rock",
+                artist: "TV Girl",
+                spotify: "https://open.spotify.com/search/Lovers%20Rock%20TV%20Girl",
+                days: 31,
+                startDay: 1, // 2027: Monday
+                theme: { bg: "#2c1820", card: "#40222e", accent: "#fb7185", border: "#572e3f", fontHead: "'Cinzel', serif" }
+            },
+            {
+                name: "April",
+                key: "april",
+                song: "Here I Am",
+                artist: "Air Supply",
+                spotify: "https://open.spotify.com/search/Here%20I%20Am%20Air%20Supply",
+                days: 30,
+                startDay: 4, // 2027: Thursday
+                theme: { bg: "#271a12", card: "#3d2a1d", accent: "#fb923c", border: "#543b2a", fontHead: "'Playfair Display', serif" }
+            },
+            {
+                name: "May",
+                key: "may",
+                song: "Totoong Tayo",
+                artist: "Jin DC",
+                spotify: "https://open.spotify.com/search/Totoong%20Tayo%20Jin%20DC",
+                days: 31,
+                startDay: 6, // 2027: Saturday
+                theme: { bg: "#1a231d", card: "#28362d", accent: "#4ade80", border: "#374a3e", fontHead: "'Poppins', sans-serif" }
+            },
+            {
+                name: "June",
+                key: "june",
+                song: "Ako ang Bagyo",
+                artist: "SHEAN",
+                spotify: "https://open.spotify.com/search/Ako%20ang%20Bagyo%20SHEAN",
+                days: 30,
+                startDay: 2, // 2027: Tuesday
+                theme: { bg: "#111827", card: "#1f2937", accent: "#22d3ee", border: "#374151", fontHead: "'Space Grotesk', sans-serif" }
+            },
+            {
+                name: "July",
+                key: "july",
+                song: "Until I Found You",
+                artist: "Stephen Sanchez",
+                spotify: "https://open.spotify.com/search/Until%20I%20Found%20You%20Stephen%20Sanchez",
+                days: 31,
+                startDay: 4, // 2027: Thursday
+                theme: { bg: "#2a2415", card: "#3d3520", accent: "#facc15", border: "#52482e", fontHead: "'Cinzel', serif" }
+            },
+            {
+                name: "August",
+                key: "august",
+                song: "Torpe",
+                artist: "Jao",
+                spotify: "https://open.spotify.com/search/Torpe%20Jao",
+                days: 31,
+                startDay: 0, // 2027: Sunday
+                theme: { bg: "#221c2b", card: "#332b40", accent: "#c084fc", border: "#463b57", fontHead: "'Poppins', sans-serif" }
+            },
+            {
+                name: "September",
+                key: "september",
+                song: "Since Day One",
+                artist: "Skusta Clee ft. Flow G",
+                spotify: "https://open.spotify.com/search/Since%20Day%20One%20Skusta%20Clee%20Flow%20G",
+                days: 30,
+                startDay: 3, // 2027: Wednesday
+                theme: { bg: "#171717", card: "#262626", accent: "#eab308", border: "#404040", fontHead: "'Space Grotesk', sans-serif" }
+            },
+            {
+                name: "October",
+                key: "october",
+                song: "Best Friend",
+                artist: "Rex Orange County",
+                spotify: "https://open.spotify.com/search/Best%20Friend%20Rex%20Orange%20County",
+                days: 31,
+                startDay: 5, // 2027: Friday
+                theme: { bg: "#2d1c0c", card: "#422a14", accent: "#f97316", border: "#5c3b1e", fontHead: "'Montserrat', sans-serif" }
+            },
+            {
+                name: "November",
+                key: "november",
+                song: "Mr. Loverman",
+                artist: "Ricky Montgomery",
+                spotify: "https://open.spotify.com/search/Mr%20Loverman%20Ricky%20Montgomery",
+                days: 30,
+                startDay: 1, // 2027: Monday
+                theme: { bg: "#1c1917", card: "#292524", accent: "#a8a29e", border: "#44403c", fontHead: "'Playfair Display', serif" }
+            },
+            {
+                name: "December",
+                key: "december",
+                song: "Merry Christmas, I Miss You",
+                artist: "Alex Crichton",
+                spotify: "https://open.spotify.com/search/Merry%20Christmas%20I%20Miss%20You%20Alex%20Crichton",
+                days: 31,
+                startDay: 3, // 2027: Wednesday
+                theme: { bg: "#1c241e", card: "#29362c", accent: "#ef4444", border: "#3a4a3e", fontHead: "'Cinzel', serif" }
+            }
+        ];
+
+        let currentMonthIndex = 0;
+        const notesStore = {};
+
+        function initApp() {
+            renderPills();
+            loadMonth(0);
+            setupKeyboardNav();
+            setupTouchSwipe();
+        }
+
+        function renderPills() {
+            const container = document.getElementById("monthPills");
+            container.innerHTML = MONTHS_DATA.map((m, idx) => `
+                <button class="month-pill ${idx === 0 ? 'active' : ''}" onclick="loadMonth(${idx})">
+                    ${m.name.substring(0, 3)}
+                </button>
+            `).join('');
+        }
+
+        function loadMonth(index) {
+            currentMonthIndex = index;
+            const data = MONTHS_DATA[index];
+            const theme = data.theme;
+            const photos = MONTH_PHOTOS[data.key] || { main: '' };
+
+            // Apply Theme styles
+            const root = document.documentElement;
+            root.style.setProperty('--bg-color', theme.bg);
+            root.style.setProperty('--card-bg', theme.card);
+            root.style.setProperty('--accent', theme.accent);
+            root.style.setProperty('--border-color', theme.border);
+            root.style.setProperty('--font-heading', theme.fontHead);
+
+            // Update Left Panel Content
+            const mainImg = document.getElementById("mainImage");
+            mainImg.src = photos.main || 'https://via.placeholder.com/320x320?text=Upload+Square+Photo';
+
+            document.getElementById("songTitle").innerText = data.song;
+            document.getElementById("songArtist").innerText = data.artist;
+            document.getElementById("spotifyLink").href = data.spotify;
+
+            // Update Right Panel Header
+            document.getElementById("monthHeader").innerHTML = `${data.name} <span class="year-tag">2027</span>`;
+
+            // Update Navigation Pills & scroll into view smoothly
+            const pills = document.querySelectorAll(".month-pill");
+            pills.forEach((pill, idx) => {
+                const isActive = idx === index;
+                pill.classList.toggle("active", isActive);
+                if (isActive) {
+                    pill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                }
+            });
+
+            // Build 2027 Calendar Grid
+            buildCalendar(data);
+        }
+
+        function buildCalendar(data) {
+            const grid = document.getElementById("calendarGrid");
+            grid.innerHTML = '';
+
+            const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayLabels.forEach(day => {
+                const labelDiv = document.createElement("div");
+                labelDiv.className = "day-label";
+                labelDiv.innerText = day;
+                grid.appendChild(labelDiv);
+            });
+
+            // Empty padding cells for start of month
+            for (let i = 0; i < data.startDay; i++) {
+                const emptyCell = document.createElement("div");
+                emptyCell.className = "date-cell empty";
+                grid.appendChild(emptyCell);
+            }
+
+            // Date cells
+            for (let d = 1; d <= data.days; d++) {
+                const dateCell = document.createElement("div");
+                dateCell.className = "date-cell";
+                dateCell.innerText = d;
+
+                const noteKey = `${data.key}-${d}`;
+                if (notesStore[noteKey]) {
+                    const dot = document.createElement("div");
+                    dot.className = "note-dot";
+                    dateCell.appendChild(dot);
+                }
+
+                dateCell.onclick = () => {
+                    const existingNote = notesStore[noteKey] || '';
+                    const userNote = prompt(`Add a memory or note for ${data.name} ${d}, 2027:`, existingNote);
+                    if (userNote !== null) {
+                        if (userNote.trim() === '') {
+                            delete notesStore[noteKey];
+                        } else {
+                            notesStore[noteKey] = userNote;
+                        }
+                        buildCalendar(data);
+                    }
+                };
+
+                grid.appendChild(dateCell);
+            }
+        }
+
+        function prevMonth() {
+            const nextIdx = (currentMonthIndex - 1 + 12) % 12;
+            loadMonth(nextIdx);
+        }
+
+        function nextMonth() {
+            const nextIdx = (currentMonthIndex + 1) % 12;
+            loadMonth(nextIdx);
+        }
+
+        /* Keyboard Navigation Handler */
+        function setupKeyboardNav() {
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight') {
+                    nextMonth();
+                } else if (e.key === 'ArrowLeft') {
+                    prevMonth();
+                }
+            });
+        }
+
+        /* Touch Swipe Handler for Mobile Phones */
+        function setupTouchSwipe() {
+            let touchStartX = 0;
+            let touchEndX = 0;
+            const container = document.getElementById("calendarApp");
+
+            container.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+
+            container.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, { passive: true });
+
+            function handleSwipe() {
+                const swipeThreshold = 50;
+                if (touchEndX < touchStartX - swipeThreshold) {
+                    nextMonth(); // Swipe Left -> Next Month
+                } else if (touchEndX > touchStartX + swipeThreshold) {
+                    prevMonth(); // Swipe Right -> Prev Month
+                }
+            }
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
